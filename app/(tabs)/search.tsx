@@ -6,6 +6,7 @@ import useFetch from "@/services/useFetch";
 import { fetchMovies } from "@/services/api";
 import { icons } from "@/constants/icons";
 import SearchBar from "@/components/SearchBar";
+import { updateSearchCount } from "@/services/appwrite";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,16 +22,23 @@ const Search = () => {
   }), false);
 
   useEffect(() => {
+
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
-      await loadMovies();
+        await loadMovies();
       } else {
         reset()
       }
     }, 500)
 
     return () => clearTimeout(timeoutId);
-  },[searchQuery]);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (movies?.length > 0 && movies?.[0]) {
+      updateSearchCount(searchQuery, movies[0]);
+    }
+  }, [movies]);
 
   return (
     <View className="flex-1 bg-primary">
@@ -55,8 +63,8 @@ const Search = () => {
             </View>
 
             <View className="my-5">
-              <SearchBar 
-                placeholder="Search movies..." 
+              <SearchBar
+                placeholder="Search movies..."
                 value={searchQuery}
                 onChangeText={(text: string) => setSearchQuery(text)}
               />
@@ -81,11 +89,14 @@ const Search = () => {
         }
         ListEmptyComponent={
           !loading && !error ? (
-            <View className="text-center text-gray-500">
-              {searchQuery.trim() ? 'No movies found' : 'Search for a movie'}
+            <View className="items-center justify-center my-10">
+              <Text className="text-center text-gray-500">
+                {searchQuery.trim() ? "No movies found" : "Search for a movie"}
+              </Text>
             </View>
           ) : null
         }
+
       />
     </View>
   );
